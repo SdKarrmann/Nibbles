@@ -1,0 +1,46 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+/**
+ *
+ * @author brincksl
+ */
+public class Edibles implements ICollidable, IDrawable {
+    
+    private BoundingBox box;
+    private int count;
+    private Graphics graphics;
+    
+    public Edibles(int x, int y, int width, int height, int value, Graphics g) {
+        box = new BoundingBox(x, y, width, height);
+        count = value;
+        graphics = g;
+    }
+    
+    public int getValue() {
+        return count;
+    }
+
+    @Override
+    public boolean areCollided(ICollidable collidable) {
+        return this.box.isCollided(collidable.getBoundingBox());
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return box;
+    }
+
+    @Override
+    public void Draw(Color color) {
+        graphics.drawString(String.valueOf(count), this.box.getX(), this.box.getY());
+    }
+    
+}

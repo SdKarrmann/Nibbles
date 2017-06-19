@@ -1,0 +1,359 @@
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import nibbles.CollisionLookup.ICollisionRun;
+
+
+/**
+ *
+ * @author Steven
+ */
+public final class Nibbles {
+    
+    private final int fontSize = 30;
+    private final int scoreX = 400;
+    private final int scoreY = 25;
+    private final int deathPenalty = 1000;
+   
+    private final ArrayList<Entity> entities = new ArrayList<>();
+    private final ArrayList<Snake> snakes = new ArrayList<>();
+    private final ArrayList<Entity> bufferRemove = new ArrayList();
+    private final ArrayList<Entity> bufferAdd = new ArrayList();
+    Graphics graphics;
+    CollisionLookup collisions = new CollisionLookup();
+    
+    private final int windowWidth, windowHeight;
+    private int level;
+    private LevelManager levelMgr;
+    private boolean paused, inMenu, inOptions;
+    private boolean canChangeDirection;
+    public Scoreboard scoreboard;
+    public int currentNibbleNum;
+    
+    public Nibbles(Graphics gIn, int width, int height, int...keys) {
+        graphics = gIn;
+        windowWidth = width;
+        windowHeight = height;
+        level = 0;
+        currentNibbleNum = 1;
+        canChangeDirection = true;
+        paused = false;
+        inMenu = true;
+        inOptions = false;
+        scoreboard = new Scoreboard(scoreX, scoreY, graphics);
+        bufferAdd.add(scoreboard);
+        incLevel();
+        levelMgr = new LevelManager(level, graphics);
+        levelMgr.setupLevel(bufferAdd);
+        for(int key : keys)
+            this.spawnNewSnake(key, gIn);
+        initCollisions();
+        playSound("IntroTune.wav");
+    }
+    
+    /**
+     * Called once per tick in order to draw game onto the screen
+     */
+    private void draw()
+    {
+        // draw blue background
+        graphics.setColor(Color.BLUE);
+        graphics.fillRect(0, 0, windowWidth, windowHeight);
+        
+        // draw each object in drawables list
+        for(IDrawable d : entities)
+            d.draw();
+    }
+    
+    /**
+     * Called once per tick in order to update the game state, such as moving
+     * the snake and detecting collisions
+     */
+    private void update()
+    {
+        for(int i = 0; i < entities.size(); i++)
+        {
+            ICollidable current = entities.get(i);
+            if(!snakes.isEmpty() && current.areCollided(snakes.get(0)))
+                collisions.runCollision(snakes.get(0), current);//TODO: implement system to check for all snakes
+        }
+        for(Entity current : bufferRemove) {
+            entities.remove(current);
+        }
+        for(Entity current : bufferAdd) {
+            entities.add(current);
+        }
+        bufferAdd.clear();
+        bufferRemove.clear();
+        canChangeDirection = true;
+    }
+    
+    public void tick() {
+        update();
+        draw();
+    }
+    
+    public void setMenu(int menu) {
+       switch (menu) {
+           case -1:
+               inMenu = false;
+               inOptions = false;
+               break;
+           case 0:
+               inMenu = true;
+               inOptions = false;
+               break;
+           case 1:
+               inMenu = false;
+               inOptions = true;
+               break;
+           default:
+               break;
+       }
+    }
+    
+    public void drawMenu(String menu) {
+        graphics.clearRect(0, 0, windowWidth, windowHeight);
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(0, 0, windowWidth, windowHeight);
+        Path path = Paths.get("src\\nibbles\\", menu + ".txt");
+        int row = 1;
+        try {
+            List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+            for (String line : lines) {
+                if (line.startsWith("|C|")) {
+                    String colorString = line.substring(3);
+                    Field field = Class.forName("java.awt.Color").getField(colorString);
+                    Color color = (Color)field.get(null);
+                    graphics.setColor(color);
+                } else {
+                    centerText(line, row);
+                }
+                row++;
+            }
+        } catch (IOException | ClassNotFoundException
+                | NoSuchFieldException | SecurityException
+                | IllegalArgumentException | IllegalAccessException e) { }
+
+    }
+    
+    public void sparklePause() 
+    {
+       int row; //row was set to 2 and never used
+       graphics.clearRect(0, 0, windowWidth, windowHeight);
+       graphics.setColor(Color.BLACK);
+       graphics.fillRect(0, 0, windowWidth, windowHeight);
+       //graphics.setFont(new Font("More Perfect DOS VGA", Font.PLAIN, fontSize));
+       graphics.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
+       graphics.setColor(Color.LIGHT_GRAY);
+       row = 15;
+       centerText("Game is Paused", row);       
+    }
+    
+    public void setSnakeDirection(EnumDirection direct, int key) {
+        Snake snakeToChange = this.getSnake(key);
+        if(snakeToChange != null && canChangeDirection)
+        {
+            canChangeDirection = false;
+            snakeToChange.SetDirection(direct);
+        }
+    }
+    
+    private Snake getSnake(int key) {
+        for(Snake current : this.snakes)
+            if(key == current.getKey())
+                return current;
+        return null;
+    }
+    
+    public boolean isPaused()
+    {
+        return paused;
+    }
+    
+    public boolean inMainMenu()
+    {
+        return inMenu;
+    }
+    
+    public boolean inOptionsMenu() {
+        return inOptions;
+    }
+    
+    public boolean isSnakeAlive(int playerNum)
+    {
+        return true;
+    }
+    
+    public void setPaused(boolean val)
+    {
+        paused = val;
+    }
+    
+    public void quitGame()
+    {
+        paused = false;
+        inMenu = true;
+        killSnake(0);
+    }
+    
+    public void spawnNewSnake(int key, Graphics graphics)
+    {
+        Pair p = levelMgr.getSpawnLocation(key);
+        /*int x = 250;
+        int y = 250;*/
+        Snake snakeToAdd = new Snake(p.x, p.y, graphics, key,
+                new SnakePart(graphics, p.x, p.y - 1));
+        // remove snake if one exists for this key
+        for(int i = 0; i < snakes.size(); i++)
+        {
+            Snake current = snakes.get(i);
+            if(current.getKey() == key)
+            {
+                bufferRemove.add(current);
+                snakes.remove(current);
+                snakeToAdd.setPoints(current.getPoints());//POINT RESET DEBUGGING: At long last, I've found it. The point reset bug. Now my purpose is fulfilled.
+                i--;
+            }
+        }
+        bufferAdd.add(snakeToAdd);
+        snakes.add(snakeToAdd);
+    }
+    
+    public void killSnake(int key)
+    {
+        Snake snakeToRemove = this.getSnake(key);
+        if(snakeToRemove != null) {
+            snakes.remove(snakeToRemove);
+            bufferRemove.add(snakeToRemove);
+        }
+    }   
+    
+    public int getLevel() {
+        return level;
+    }
+    
+    /**
+     * Clears drawables and collidables and loads new lists from file for the
+     * next level. 
+     */
+    public void incLevel() {
+        level++;
+        levelMgr = new LevelManager(level, graphics);
+        entities.clear();
+        levelMgr.setupLevel(bufferAdd);
+        currentNibbleNum = 1;
+        spawnNewFood(currentNibbleNum);
+        bufferAdd.add(scoreboard);
+        
+        int score = 0;
+        if(!snakes.isEmpty())
+            score = snakes.get(0).getPoints();//TODO: This isn't multiplayer compatible.
+        scoreboard.setScore(score);
+        System.out.println("incLevel: " + score);//POINT RESET DEBUGGING: day 1, points are ok here. Spirits are high
+    }
+    
+    private void centerText(String text, int row) {
+       int xVal, yVal;
+       FontMetrics fm = graphics.getFontMetrics();
+       xVal = (windowWidth - fm.stringWidth(text)) / 2;
+       yVal = (row * fm.getHeight()) + fm.getAscent();
+       graphics.drawString(text, xVal, yVal);
+    }
+    
+    private void handleSnakeDeath(Snake snake)
+    {
+        int currentPoints = snake.getPoints() - deathPenalty;
+        if(currentPoints < 0)
+            currentPoints = 0;
+        scoreboard.setScore(currentPoints);
+        // if there are lives left to play
+        if(snake.decrementLives())
+        {
+            spawnNewSnake(snake.getKey(), graphics);
+            this.getSnake(snake.getKey()).setPoints(currentPoints);
+        }
+        else
+        {
+            quitGame();
+        }
+    }
+    
+    private void spawnNewFood(int value) {
+        Pair pos = levelMgr.getRandomFoodLocation();
+        Edibles food = new Edibles(pos.x, pos.y, value, graphics);
+        boolean isValid = false;
+        while(!isValid) {
+            isValid = true;
+            for(Entity current : entities) {
+                if(food.areCollided(current)) {
+                    isValid = false;
+                    pos = levelMgr.getRandomFoodLocation();
+                    food = new Edibles(pos.x, pos.y, value, graphics);
+                }
+            }
+        }
+        entities.add(food);
+    }
+    
+    private void initCollisions() {
+        collisions.register(Snake.class, Snake.class, 
+                (ICollisionRun<Snake, Snake>) (Snake firstSnake, Snake secondSnake) -> {
+            handleSnakeDeath(firstSnake);
+        });
+        collisions.register(Snake.class, Wall.class, 
+                (ICollisionRun<Snake, Wall>) (Snake snake, Wall boundary) -> {
+            handleSnakeDeath(snake);
+        });
+        collisions.register(Snake.class, Edibles.class, 
+                (ICollisionRun<Snake, Edibles>) (Snake snake, Edibles food) -> {
+            snake.growSnake(food.getValue());//POINT RESET DEBUGGING: day 7, food is running low. Still haven't found the bug.
+            bufferRemove.add(food);
+            
+            if(currentNibbleNum < 9)
+            {
+                spawnNewFood(++ currentNibbleNum);
+                scoreboard.setScore(snake.getPoints());
+            }
+            else
+            {
+                incLevel();
+                spawnNewSnake(snake.getKey(), graphics);
+                scoreboard.setScore(snake.getPoints());
+                System.out.println("food collision: " + snake.getPoints());//POINT RESET DEBUGGING: day 92, still no bug. This may be my last entry.
+                setPaused(true);
+            }
+        });
+    }
+    
+    private void playSound(String fileName) {
+        try 
+        {
+            Clip clip = AudioSystem.getClip();
+            URL url = this.getClass().getResource(fileName);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+            clip.open(audioIn);
+            clip.start(); 
+        }
+        catch(Exception e)
+        {
+            //LAZY GOOD FOR NOTHING TRY-CATCH!
+            //Cus we're real programmers -Steven
+        }
+    }
+}

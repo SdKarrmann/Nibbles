@@ -1,0 +1,10 @@
+I-Logix-RPY-Archive version 8.7.1 * 5066837
+
+- filesTable = { IRPYRawContainer 
+	- size = 3;
+	- value = "Nibbles.rpy" ""
+	"Nibbles_rpy\\Default.sbs" "Default"
+	"Nibbles_rpy\\DefaultComponent.cmp" "DefaultComponent"
+	
+}
+

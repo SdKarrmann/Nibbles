@@ -1,0 +1,25 @@
+
+|C|WHITE
+Q B a s i c  N i b b l e s
+|C|LIGHT_GRAY
+
+Copyright (C) Microsoft Corporation 1990
+
+Nibbles is a game for one or two players.  Navigate your snakes
+around the game board trying to eat up numbers while avoiding
+running into walls or other snakes.  The more numbers you eat up,
+the more points you gain and the longer your snake becomes.
+
+ Game Controls 
+
+  General             Player 1               Player 2    
+                        (Up)                   (Up)      
+P - Pause                ↑                      W       
+                     (Left) ←   → (Right)   (Left) A   D (Right)  
+                         ↓                      S       
+                       (Down)                 (Down)     
+
+
+
+
+Press any key to continue

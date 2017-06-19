@@ -1,0 +1,41 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+/**
+ *
+ * @author Steven
+ */
+public class Wall implements ICollidable, IDrawable {
+    
+    private BoundingBox wall;
+    private Graphics graphics;
+    
+    public Wall(int x, int y, int width, int height, Graphics gIn) {
+        wall = new BoundingBox(x, y, width, height);
+        graphics = gIn;
+    }
+
+    @Override
+    public boolean areCollided(ICollidable collidable) {
+        return collidable.getBoundingBox().isCollided(wall);
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return wall;
+    }
+
+    @Override
+    public void Draw(Color color) {
+        graphics.setColor(Color.RED);
+        graphics.fillRect(wall.getX(), wall.getY(), wall.getWidth(), wall.getHeight());
+    }
+    
+}

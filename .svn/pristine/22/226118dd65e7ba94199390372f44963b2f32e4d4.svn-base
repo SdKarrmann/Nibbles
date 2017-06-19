@@ -1,0 +1,503 @@
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferStrategy;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import nibbles.CollisionLookup.ICollisionRun;
+
+
+/**
+ *
+ * @author Steven
+ */
+public final class Nibbles {
+    
+    public enum State 
+    { 
+        MAIN, PLAYERS, DIFFICULTY, SPEED, MONOCHROME, PAUSED, GAME;
+        public String toString()
+        {
+            switch (this) {
+                case MAIN:
+                    return "mainMenu";
+                case PLAYERS:
+                    return "playersMenu";
+                case DIFFICULTY:
+                    return "difficultyMenu";
+                case SPEED:
+                    return "speedMenu";
+                case MONOCHROME:
+                    return "monochromeMenu";
+                case PAUSED:
+                    return "pauseMenu";
+                case GAME:
+                    return "game";
+                default:
+                    return "none";
+            }
+        }
+    };
+    
+    private final int fontSize = 30;
+    private final int scoreX = 400;
+    private final int scoreY = 25;
+    private final int deathPenalty = 1000;
+
+    private final int MAX_SKILL = 100;
+    public final static int DEFAULT_SPEED = 125;
+    
+    private int numPlayers;
+    private int skillLevel = 1;
+    private boolean incGameSpeed;
+    private boolean useColor;
+    private SoundManager sounds = new SoundManager();
+ 
+    private final ArrayList<Entity> entities = new ArrayList<>();
+    private final ArrayList<Entity> bufferRemove = new ArrayList<>();
+    private final ArrayList<Entity> bufferAdd = new ArrayList<>();
+    private Player player1, player2;
+    Graphics2D graphics;
+    Graphics2D pauseBar;
+    BufferStrategy bufferDouble;
+    CollisionLookup collisions = new CollisionLookup();
+    
+    private final int windowWidth, windowHeight;
+    private int level;
+    private LevelManager levelMgr;
+    private State state;
+    private boolean canChangeDirection;
+    public Scoreboard scoreboard;
+    public int currentNibbleNum;
+    
+    private String menuInput = " ";
+    
+    public Nibbles(BufferStrategy/*Graphics*/ gIn, int width, int height, int numP) {
+        bufferDouble = gIn;
+        graphics = (Graphics2D)gIn.getDrawGraphics();
+        pauseBar = (Graphics2D)gIn.getDrawGraphics();
+        windowWidth = width;
+        windowHeight = height;
+        numPlayers = numP;
+        level = 1;
+        currentNibbleNum = 1;
+        canChangeDirection = true;
+        state = State.MAIN;
+
+        initCollisions();
+        sounds.playSound(SoundManager.INTRO_TUNE);
+    }
+    
+    /**
+     * Called once per tick in order to draw game onto the screen
+     */
+    private void draw()
+    {
+        if(this.isPaused())
+            return;
+        // draw blue background
+        if(useColor)
+            graphics.setColor(Color.BLUE);
+        else
+            graphics.setColor(Color.BLACK);
+        graphics.fillRect(0, 0, windowWidth, windowHeight);
+        
+        // draw each object in drawables list
+        for(IDrawable d : entities)
+            d.draw(useColor);
+        bufferDouble.show();
+    }
+    
+    /**
+     * Called once per tick in order to update the game state, such as moving
+     * the snake and detecting collisions
+     */
+    private void update()
+    {
+        for(int i = 0; i < entities.size(); i++)
+        {
+            Entity current = entities.get(i);
+            current.update();
+            if(current.areCollided(player1.getSnake()))
+                collisions.runCollision(player1.getSnake(), current);//TODO: implement system to check for all snakes
+            if(player2 != null && current.areCollided(player2.getSnake()))
+                collisions.runCollision(player2.getSnake(), current);
+        }
+        for(Entity current : bufferRemove) {
+            entities.remove(current);
+        }
+        for(Entity current : bufferAdd) {
+            entities.add(current);
+        }
+        bufferAdd.clear();
+        bufferRemove.clear();
+        canChangeDirection = true;
+        
+        scoreboard.setScore(player1.getKey(), player1.getScore());
+        if(player2 != null)
+            scoreboard.setScore(player2.getKey(), player2.getScore());
+    }
+    
+    public void tick() {
+        update();
+        draw();
+    }
+    
+    public void menuInput(char in) {
+        switch (state) {
+            case MAIN:
+                state = State.PLAYERS;
+                drawMenu(state);
+                break;
+            case PLAYERS:
+                if (in == '1' || in == '2') {
+                    menuInput = Character.toString(in);
+                    drawMenu(state);
+                } else if (in == '\n') {
+                    numPlayers = Integer.parseInt(menuInput);
+                    menuInput = "";
+                    state = State.DIFFICULTY;
+                    drawMenu(state);
+                }
+                break;
+            case DIFFICULTY:
+                if (Character.isDigit(in)) {
+                    menuInput += in;
+                    if (menuInput.length() > 3 ||
+                            (menuInput.length() > 1 && Integer.parseInt(menuInput) > 100))
+                        menuInput = "";
+                    drawMenu(state);
+                } else if (in == '\n' && !menuInput.equals("")) {
+                    skillLevel = Integer.parseInt(menuInput);
+                    menuInput = "";
+                    state = State.SPEED;
+                    drawMenu(state);
+                }
+                break;
+            case SPEED:
+                in = Character.toUpperCase(in);
+                if (in == 'Y' || in == 'N') {
+                    menuInput = Character.toString(in);
+                    drawMenu(state);
+                } else if (in == '\n') {
+                    incGameSpeed = menuInput.equals(Character.toString('Y'));
+                    menuInput = "";
+                    state = State.MONOCHROME;
+                    drawMenu(state);
+                }
+                break;
+            case MONOCHROME:
+                in = Character.toUpperCase(in);
+                if (in == 'M' || in == 'C') {
+                    menuInput = Character.toString(in);
+                    drawMenu(state);
+                } else if (in == '\n') {
+                    useColor = menuInput.equals(Character.toString('C'));
+                    menuInput = "";
+                    Color col = this.useColor ? Color.BLUE : Color.BLACK;
+                    graphics.setColor(col);
+                    graphics.fillRect(0, 0, windowWidth, windowHeight);
+                    startGame();
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    public void drawMenu(State menu) {
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(0, 0, windowWidth, windowHeight);
+        InputStream s = this.getClass().getResourceAsStream("\\menus\\" + menu + ".txt");
+        BufferedReader r = new BufferedReader(new InputStreamReader(s));
+        int row = 1;
+        try {
+            List<String> lines = r.lines().collect(Collectors.toList());
+            for (String line : lines) {
+                if (line.startsWith("|C|")) {
+                    String colorString = line.substring(3);
+                    Field field = Class.forName("java.awt.Color").getField(colorString);
+                    Color color = (Color)field.get(null);
+                    graphics.setColor(color);
+                } else if (line.contains("|I|")) {
+                    line = line.replace("|I|", menuInput);
+                    centerText(line, row);
+                } else {
+                    centerText(line, row);
+                }
+                row++;
+            }
+        } catch (ClassNotFoundException
+                | NoSuchFieldException | SecurityException
+                | IllegalArgumentException | IllegalAccessException e)
+        { e.printStackTrace(); }
+        bufferDouble.show();
+    }
+    
+    
+    public void setSnakeDirection(EnumDirection direct, int key) 
+    {
+        if(player1 == null && player2 == null)
+            return;
+        Snake snakeToChange = key == 1 ? player1.getSnake() : player2.getSnake();
+        if(snakeToChange != null && canChangeDirection)
+        {
+            canChangeDirection = false;
+            snakeToChange.SetDirection(direct);
+        }
+    }
+    
+    public boolean isPaused()
+    {
+        return state == State.PAUSED;
+    }
+    
+    public boolean inMenu() {
+        return state == State.MAIN
+                || state == State.PLAYERS
+                || state == State.DIFFICULTY
+                || state == State.SPEED
+                || state == State.MONOCHROME;
+    }
+    
+    public boolean inMainMenu() {
+        return state == State.MAIN;
+    }
+    
+    public boolean isSnakeAlive(int playerNum)
+    {
+        return true;
+    }
+    
+    public void setPaused(boolean val)
+    {
+        if (val)
+            state = State.PAUSED;
+        else
+            state = State.GAME;
+    }
+    
+    public void startGame()
+    {
+        state = State.GAME;
+        level = 1;
+        levelMgr = new LevelManager(level, graphics);
+        levelMgr.setupLevel(bufferAdd);
+        player1 = new Player(1, 0, 5, null, Color.YELLOW);
+        if(numPlayers == 2)
+        {
+            player2 = new Player(2, 0, 5, null, Color.CYAN);
+        }
+        scoreboard = new Scoreboard(scoreX, scoreY, graphics, player1, player2);
+        bufferAdd.add(scoreboard);
+        setUpLevel();
+        sounds.playSound(SoundManager.START_TUNE);
+        this.drawPauseBar("Level " + this.level + ", push space");
+        this.setPaused(true);
+    }
+    
+    private void spawnNewSnake(int key)
+    {
+        //spawn new snake at valid location
+        Pair pair = levelMgr.getSpawnLocation(key);
+        Player p = key == 1 ? player1 : player2;
+        Snake snakeToAdd = new Snake(pair.x, pair.y, graphics, key, p.getColor(),
+                new SnakePart(graphics, pair.x, pair.y - 1, p.getColor()));
+        
+        // remove snake if one exists for this key
+        // set player's new snake and add to entity collection
+        if(p != null)
+        {
+            if(p.getSnake() != null)
+                bufferRemove.add(p.getSnake());
+            bufferAdd.add(snakeToAdd);
+            p.setSnake(snakeToAdd);
+        }
+    }
+    
+    private void killSnake(int key)
+    {
+        Player p = key == 1 ? player1 : player2;
+        if(p != null && p.getSnake() != null)
+        {
+            bufferRemove.add(p.getSnake());
+            p.setSnake(null);
+        }
+    }   
+    
+    public int getLevel() {
+        return level;
+    }
+    
+    /**
+     * Clears entities list and loads new list from file for the next level. 
+     */
+    public void setUpLevel() {
+        entities.clear();
+        levelMgr = new LevelManager(level, graphics);
+        levelMgr.setupLevel(bufferAdd);
+        currentNibbleNum = 1;
+        spawnNewFood(currentNibbleNum);
+        killSnake(1);
+        spawnNewSnake(1);
+        if(numPlayers == 2)
+        {
+            killSnake(2);
+            spawnNewSnake(2);
+        }
+        scoreboard.setLevel(level);
+        bufferAdd.add(scoreboard);
+    }
+    
+    private void centerText(String text, int row) {
+       int xVal, yVal;
+       FontMetrics fm = graphics.getFontMetrics();
+       xVal = (windowWidth - fm.stringWidth(text)) / 2;
+       yVal = (row * fm.getHeight()) + fm.getAscent();
+       graphics.drawString(text, xVal, yVal);
+       bufferDouble.show();
+    }
+    
+    private void handleSnakeDeath(Snake snake)
+    {
+        Player p = snake.equals(player1.getSnake()) ? player1 : player2;
+        int currentPoints = p.getScore() - deathPenalty;
+        if(currentPoints < 0)
+            currentPoints = 0;//TODO: do we need to cap it?
+	p.setScore(currentPoints);
+        scoreboard.setScore(p.getKey(), currentPoints);
+        // if there are lives left to play
+        if(p.decrementLives())
+        {
+            String name = p == player1 ? "<-- Sammy" : "Jake";
+            String arrow = p == player1 ? "" : "-->";
+            killSnake(snake.getKey());
+            spawnNewSnake(p.getKey());
+            this.drawPauseBar(name + " died. Press space to continue. " + arrow);
+            this.setPaused(true);
+        }
+        else
+        {
+            quitGame();
+        }
+    }
+    
+    public void quitGame()
+    {
+        state = State.MAIN;
+        drawMenu(State.MAIN);
+    }
+    
+    private void spawnNewFood(int value) {
+        Pair pos = levelMgr.getRandomFoodLocation();
+        Edibles food = new Edibles(pos.x, pos.y, value, graphics);
+        for(Entity current : entities) {
+            if(current.areCollided(food)) {
+                pos = levelMgr.getRandomFoodLocation();
+                food = new Edibles(pos.x, pos.y, value, graphics);
+            }
+        }
+        entities.add(food);
+    }
+    
+    private void initCollisions() {
+        collisions.register(Snake.class, Snake.class, 
+                (ICollisionRun<Snake, Snake>) (Snake firstSnake, Snake secondSnake) -> {
+            handleSnakeDeath(firstSnake);
+            sounds.playSound(SoundManager.COLLISION_TUNE);
+        });
+        collisions.register(Snake.class, Wall.class, 
+                (ICollisionRun<Snake, Wall>) (Snake snake, Wall boundary) -> {
+            handleSnakeDeath(snake);
+            sounds.playSound(SoundManager.COLLISION_TUNE);
+        });
+        collisions.register(Snake.class, Edibles.class, 
+                (ICollisionRun<Snake, Edibles>) (Snake snake, Edibles food) -> {
+            sounds.playSound(SoundManager.EAT_TUNE);
+            Player p = snake.equals(player1.getSnake()) ? player1 : player2;
+            snake.growSnake(food.getValue());
+            p.addPoints(food.getValue() * 100);
+            bufferRemove.add(food);
+            
+            if(currentNibbleNum < 9)
+            {
+                spawnNewFood(++ currentNibbleNum);
+            }
+            else
+            {
+                level++;
+                setUpLevel();
+                update();
+                draw();
+                this.drawPauseBar("Level " + this.level + ", push space");
+                this.setPaused(true);
+            }
+        });
+    }
+    
+    // Cheat Code
+    public void incLevel()
+    {
+        level++;
+        setUpLevel();
+    }
+    
+    // Cheat code
+    public void decLevel()
+    {
+        level--;
+        setUpLevel();
+    }
+    
+    public void drawPauseBar(String input)
+    {
+       Color col = useColor ? Color.RED : Color.BLACK;
+       int borderWidth = 480;
+       int borderHeight = 80;
+       int menuWidth = (int) (borderWidth * .9);
+       int menuHeight = (int) (borderHeight * .6);
+       pauseBar.setColor(Color.LIGHT_GRAY);
+       pauseBar.fillRect(((windowWidth/2) - borderWidth/2), ((windowHeight/2) - borderHeight/2), borderWidth, borderHeight);
+       pauseBar.setColor(col);
+       pauseBar.fillRect((windowWidth/2) - menuWidth/2, (windowHeight/2) - menuHeight/2, menuWidth, menuHeight);
+       graphics.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
+       graphics.setColor(Color.LIGHT_GRAY);
+       int row = 15;
+       centerText(input, row);
+       bufferDouble.show();
+    }
+    
+    public void sparklePause() 
+    {
+       graphics.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
+       graphics.setColor(Color.LIGHT_GRAY);
+       int row = 15;
+       centerText("Game is Paused", row);
+       bufferDouble.show();
+    }
+    
+    public int getTimerSpeed() {
+        int speed = DEFAULT_SPEED - this.skillLevel;
+        if(this.incGameSpeed)
+            speed -= this.level * 2;
+        return speed;
+    }
+}

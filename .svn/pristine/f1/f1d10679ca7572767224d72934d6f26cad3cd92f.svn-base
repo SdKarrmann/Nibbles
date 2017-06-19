@@ -1,0 +1,80 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+/**
+ *
+ * @author karrmanns
+ */
+public class BoundingBox {
+    
+    private int x, y, width, height;
+    
+    public static final BoundingBox ALWAYS_COLLIDED = new EveryWhereBox();
+    
+    /**
+     * Empty box constructor
+     */
+    public BoundingBox()
+    {
+        x = 0;
+        y = 0;
+        width = 0;
+        height = 0;
+    }
+    
+    public BoundingBox(int xIn, int yIn, int widthIn, int heightIn) {
+        x = xIn;
+        y = yIn;
+        width = widthIn;
+        height = heightIn;
+    }
+    
+    public void setX(int xNew) {
+        x = xNew;
+    }
+    
+    public void setY(int yNew) {
+        y = yNew;
+    }
+    
+    public int getX() {
+        return x;
+    }
+    
+    public int getY() {
+        return y;
+    }
+    
+    public int getWidth() {
+        return width;
+    }
+    
+    public int getHeight() {
+        return height;
+    }
+    
+    public boolean isCollided(BoundingBox box) {
+        boolean yFlag = y <= box.y && box.y <= y + height //Are they collided on the y-axis?
+                || y <= box.y + box.height && box.y + box.height <= y + height;
+        boolean xFlag = x <= box.x && box.x <= x + width //Are they collided on the x-axis?
+                || x <= box.x + box.width && box.x + box.width <= x + width;
+        return yFlag && xFlag;// && box.isCollided(this); //Both boxes must agree on the collision.
+    }
+    
+    private static class EveryWhereBox extends BoundingBox {
+        
+        public EveryWhereBox() {
+            super(0, 0, 0, 0);
+        }
+        
+        public boolean isCollided(BoundingBox box) {
+            return true;
+        }
+        
+    }
+    
+}

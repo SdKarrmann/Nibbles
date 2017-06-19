@@ -1,0 +1,58 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+/**
+ *
+ * @author polusj
+ */
+public class Scoreboard extends Entity 
+{
+    private int score1;
+    private int score2;
+    
+    public Scoreboard(int x, int y, Graphics g)
+    {
+        super(x, y, g);
+        score1 = 0;
+        score2 = 0;
+    }
+    
+    @Override
+    public void draw()
+    {
+        g.setColor(Color.WHITE);
+        g.drawString("P1 Score: " + score1 + " P2 Score: " + score2, x, y);
+    }
+    
+    @Override
+    public boolean areCollided(ICollidable collidable)
+    {
+        return false;
+    }
+    
+    @Override
+    public BoundingBox getBoundingBox()
+    {
+        return new BoundingBox();
+    }
+    
+    public void setScore(int key, int newScore)
+    {
+        if(key == 1)
+        {
+            score1 = newScore;
+        }
+        else
+        {
+            score2 = newScore;
+        }
+    }
+    
+}

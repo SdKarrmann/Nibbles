@@ -1,0 +1,33 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Graphics;
+
+/**
+ * A special {@link SnakePart} that stores the direction of the {}
+ * 
+ * @author Steven
+ */
+public class SnakeHead extends SnakePart {
+    
+    private EnumDirection direction;
+    
+    public SnakeHead(Graphics graphicsIn, int xIn, int yIn) {
+        super(graphicsIn, xIn, yIn);
+        direction = EnumDirection.DOWN;
+    }
+    
+    public void setDirect(EnumDirection direct) {
+        if(direct != null)
+            direction = direct;
+    }
+    
+    public EnumDirection getDirection() {
+        return direction;
+    }
+    
+}

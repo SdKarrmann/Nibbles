@@ -1,0 +1,42 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+/**
+ *
+ * @author Steven
+ */
+public class Wall implements ICollidable {
+    
+    private BoundingWall wall;
+    
+    public Wall(int x, int y, int width, int height) {
+        wall = new BoundingWall(x, y, width, height);
+    }
+
+    @Override
+    public boolean areCollided(ICollidable collidable) {
+        return wall.isCollided(collidable.getBoundingBox());
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return wall;
+    }
+    
+    private class BoundingWall extends BoundingBox{
+        
+        BoundingWall(int x, int y, int widthIn, int heightIn) {
+            super(x, y, widthIn, heightIn);
+        }
+        
+        public boolean isCollided(BoundingBox box) {
+            return !super.isCollided(box);
+        }
+        
+    }
+    
+}

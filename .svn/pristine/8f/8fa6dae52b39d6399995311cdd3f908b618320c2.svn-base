@@ -1,0 +1,137 @@
+I-Logix-RPY-Archive version 8.7.1 * 5066837
+
+- m_fileModifyTime = { IRPYRawContainer 
+	- size = 12;
+	- value = "DefaultComponent/DefaultConfig/Default/BoundingBox.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/Direction.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/Edible.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/ICollidable.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/IDrawable.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/Nibbles.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/NibblesGUI.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/PlayingField.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/Snake.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/SnakeHead.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/SnakePart.java" 4.6.2017::23:31:29
+	"DefaultComponent/DefaultConfig/Default/Sparkle.java" 4.6.2017::23:31:29
+	
+}
+- size = 13;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "PlayingField";
+	- _id = GUID efa0272b-5baf-441f-86e2-9f0eee5390a7;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "BoundingBox";
+	- _id = GUID c79d76ce-4bbd-4497-ba92-517a4b6e15b2;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "Edible";
+	- _id = GUID 537d4dca-b4c1-478c-86ce-fce08ced62a8;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "SnakePart";
+	- _id = GUID 433e3a60-69cc-4109-88cb-38b7217d35dd;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "Nibbles";
+	- _id = GUID 40475e95-6f96-4b2b-b7d2-68ae5a84e026;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "Snake";
+	- _id = GUID 6b819287-5938-4b59-94b2-d996137db2c0;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "SnakeHead";
+	- _id = GUID f7069913-b80b-47dc-9d70-4f2e2901d780;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "ICollidable";
+	- _id = GUID a77741b3-915d-44f3-849d-ff8352baea69;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "IDrawable";
+	- _id = GUID 7a8ecbef-2c27-4ea9-a87a-6e643efbb613;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "NibblesGUI";
+	- _id = GUID 09d1252a-e185-4f83-aa60-bc2a9eac7c7b;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "Direction";
+	- _id = GUID 30521101-0162-44d0-b315-1bc7b9a65503;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "ICodeGenConfigInfo";
+	- _filename = "DefaultComponent.cmp";
+	- _subsystem = "";
+	- _class = "";
+	- _name = "DefaultComponent\\DefaultConfig";
+	- _id = GUID e69153d6-659a-451f-95d7-030c3c2d9a0c;
+}
+- genTime = 4.6.2017::23:31:29;
+- hElement = { IHandle 
+	- _m2Class = "IClass";
+	- _filename = "Default.sbs";
+	- _subsystem = "Default";
+	- _class = "";
+	- _name = "Sparkle";
+	- _id = GUID bcb57175-bc84-49c7-9be3-1610f03a2e48;
+}
+- genTime = 4.6.2017::23:31:29;
+

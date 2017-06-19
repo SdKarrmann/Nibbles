@@ -1,0 +1,16 @@
+
+
+|C|LIGHT_GRAY
+How many players (1 or 2)? 
+
+
+Skill level (1 to 100)? 
+ 1   = Novice          
+ 90  = Expert          
+ 100 = Twiddle Fingers 
+(Computer speed may affect your skill level)
+
+
+Increase game speed during play (Y or N)? 
+
+Monochrome or color monitor (M or C)? 

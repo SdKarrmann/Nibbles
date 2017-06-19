@@ -1,0 +1,33 @@
+DECLARE SUB SpacePause (text$)
+DECLARE SUB PrintScore (NumPlayers%, score1%, score2%, lives1%, lives2%)
+DECLARE SUB Intro ()
+DECLARE SUB GetInputs (NumPlayers, speed, diff$, monitor$)
+DECLARE SUB DrawScreen ()
+DECLARE SUB PlayNibbles (NumPlayers, speed, diff$)
+DECLARE SUB Set (row, col, acolor)
+DECLARE SUB Center (row, text$)
+DECLARE SUB DoIntro ()
+DECLARE SUB Initialize ()
+DECLARE SUB SparklePause ()
+DECLARE SUB Level (WhatToDO, sammy() AS snaketype)
+DECLARE SUB InitColors ()
+DECLARE SUB EraseSnake (snake() AS ANY, snakeBod() AS ANY, snakeNum%)
+DECLARE FUNCTION StillWantsToPlay ()
+DECLARE FUNCTION PointIsThere (row, col, backColor)
+
+637 SpacePause->435, 479, 507, 555, 557 PlayNibbles
+584 PrintScore->446, 499, 506, PlayNibbles
+251 Intro->89
+177 GetInputs->90
+142 DrawScreen->92
+415 PlayNibbles->95
+599 Set->169 EraseSnake; 238, 239, 243, 244 InitColors; 308, 316, 317, 325, 326 Level; 535 PlayNibbles
+135 Center->SpacePause; StillWantsToPlay; DrawScreen; Intro
+DoIntro->
+Initialize->
+657 SparklePause->Intro;
+280 Level->PlayNibbles
+226 InitColors->Level;
+164 EraseSnake->PlayNibbles
+691 StillWantsToPlay->
+572 PointIsThere->PlayNibbles

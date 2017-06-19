@@ -1,0 +1,227 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.Iterator;
+import nibbles.CollisionLookup.ICollisionRun;
+
+/**
+ *
+ * @author Steven
+ */
+public class Nibbles {
+    
+   private final int fontSize = 30;
+   
+    private ArrayList<IDrawable> drawables = new ArrayList<>();
+    private ArrayList<ICollidable> collidables = new ArrayList<>();
+    private ArrayList<Snake> snakes = new ArrayList<>();
+    private ArrayList bufferRemove = new ArrayList();
+    private ArrayList bufferAdd = new ArrayList();
+    Graphics graphics;
+    CollisionLookup collisions = new CollisionLookup();
+    
+    private int windowWidth, windowHeight;
+    private int lvl;
+    private boolean paused, inMenu;
+    
+    public Nibbles(Graphics gIn, int width, int height, int...keys) {
+        graphics = gIn;
+        windowWidth = width;
+        windowHeight = height;
+        for(int key : keys)
+            this.spawnNewSnake(key, gIn);
+        snakes.get(0).SetDirection(EnumDirection.DOWN);
+        paused = false;
+        inMenu = true;
+        collidables.add(new Wall(0, 0, width, height));
+        initCollisions();
+        Edibles food = new Edibles(500, 500, 10, 10, 1, gIn);
+        collidables.add(food);
+        drawables.add(food);
+    }
+    
+    public void tick() {
+       graphics.clearRect(0, 0, windowWidth, windowHeight);
+        Iterator<IDrawable> iterDraw = drawables.iterator();
+        while(iterDraw.hasNext())
+            iterDraw.next().Draw(Color.red);
+        for(ICollidable current : collidables)
+            if(!snakes.isEmpty() && current.areCollided(snakes.get(0)))
+                collisions.runCollision(snakes.get(0), current);
+        for(Object current : bufferRemove) {
+            if(current instanceof IDrawable)
+                drawables.remove(current);
+            if(current instanceof ICollidable)
+                collidables.remove(current);
+        }
+        for(Object current : bufferAdd) {
+            if(current instanceof IDrawable)
+                drawables.add((IDrawable)current);
+            if(current instanceof ICollidable)
+                collidables.add((ICollidable)current);
+        }
+        bufferAdd.clear();
+        bufferRemove.clear();
+    }
+    
+    public void setMenu(int menu) {
+       if (menu == -1) {
+          inMenu = false;
+       } else {
+          inMenu = true;
+       }
+    }
+    
+    public void mainMenu() {
+       int row = 2;
+       graphics.clearRect(0, 0, windowWidth, windowHeight);
+       graphics.setColor(Color.BLACK);
+       graphics.fillRect(0, 0, windowWidth, windowHeight);
+       graphics.setColor(Color.WHITE);
+       //graphics.setFont(new Font("More Perfect DOS VGA", Font.PLAIN, fontSize));
+       graphics.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
+       centerText("Q B a s i c  N i b b l e s", row++);
+       graphics.setColor(Color.LIGHT_GRAY);
+       row++;
+       centerText("Copyright (C) Microsoft Corporation 1990", row++);
+       row++;
+       centerText("Nibbles is a game for one or two players.  Navigate your snakes", row++);
+       centerText("around the game board trying to eat up numbers while avoiding", row++);
+       centerText("running into walls or other snakes.  The more numbers you eat up,", row++);
+       centerText("the more points you gain and the longer your snake becomes.", row++);
+       row++;
+       centerText(" Game Controls ", row++);
+       row++;
+       centerText("  General             Player 1               Player 2    ", row++);
+       centerText("                        (Up)                   (Up)      ", row++);
+       centerText("P - Pause                \u2191                      W       ", row++);
+       centerText("                     (Left) \u2190   \u2192 (Right)   (Left) A   D (Right)  ", row++);
+       centerText("                         \u2193                      S       ", row++);
+       centerText("                       (Down)                 (Down)     ", row++);
+       row += 4;
+       centerText("Press any key to continue", row++);
+       //graphics.drawString("test", windowWidth / 2, windowHeight / 2);
+    }
+    
+    public void sparklePause() 
+    {
+       int row = 2;
+       graphics.clearRect(0, 0, windowWidth, windowHeight);
+       graphics.setColor(Color.BLACK);
+       graphics.fillRect(0, 0, windowWidth, windowHeight);
+       //graphics.setFont(new Font("More Perfect DOS VGA", Font.PLAIN, fontSize));
+       graphics.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
+       graphics.setColor(Color.LIGHT_GRAY);
+       row = 15;
+       centerText("Game is Paused", row);       
+    }
+    
+    public void setSnakeDirection(EnumDirection direct, int key) {
+        Snake snakeToChange = this.getSnake(key);
+        if(snakeToChange != null)
+            snakeToChange.SetDirection(direct);
+    }
+    
+    private Snake getSnake(int key) {
+        for(Snake current : this.snakes)
+            if(key == current.getKey())
+                return current;
+        return null;
+    }
+    
+    public boolean isPaused()
+    {
+        return paused;
+    }
+    
+    public boolean inMainMenu()
+    {
+        return inMenu;
+    }
+    
+    public boolean isSnakeAlive(int playerNum)
+    {
+        return true;
+    }
+    
+    public void setPaused(boolean val)
+    {
+        paused = val;
+    }
+    
+    public void quitGame()
+    {
+        paused = false;
+        inMenu = true;
+        killSnake(0);
+    }
+    
+    public void spawnNewSnake(int key, Graphics graphics)
+    {
+        int x = 250;
+        int y = 250;
+        Snake snakeToAdd = new Snake(x, y, graphics, key, new SnakePart(graphics, x, y));
+        this.snakes.add(snakeToAdd);
+        this.drawables.add(snakeToAdd);
+    }
+    
+    public void killSnake(int key)
+    {
+        Snake snakeToRemove = this.getSnake(key);
+        if(snakeToRemove != null) {
+            this.snakes.remove(snakeToRemove);
+            this.drawables.remove(snakeToRemove);
+        }
+        spawnNewSnake(0, graphics);
+    }   
+    
+    public int getLevel() {
+        return lvl;
+    }
+    
+    public void incLevel() {
+        lvl ++;
+    }
+    
+    private void centerText(String text, int row) {
+       int xVal, yVal;
+       FontMetrics fm = graphics.getFontMetrics();
+       xVal = (windowWidth - fm.stringWidth(text)) / 2;
+       yVal = (row * fm.getHeight()) + fm.getAscent();
+       graphics.drawString(text, xVal, yVal);
+    }
+    
+    private void initCollisions() {
+        collisions.register(Snake.class, Snake.class, new ICollisionRun<Snake, Snake>() {
+            public void run(Snake firstSnake, Snake secondSnake) {
+                quitGame();
+            }
+        });
+        collisions.register(Snake.class, Wall.class, new ICollisionRun<Snake, Wall>() {
+            public void run(Snake snake, Wall boundary) {
+                quitGame();
+            }
+        });
+        collisions.register(Snake.class, Edibles.class, new ICollisionRun<Snake, Edibles>() {
+            public void run(Snake snake, Edibles food) {
+                snakes.get(0).growSnake(food.getValue());
+                bufferRemove.add(food);
+                int x = (int)(Math.random() * (windowWidth - 20));
+                int y = (int)(Math.random() * (windowHeight - 20));
+                if(food.getValue() < 10)
+                    bufferAdd.add(new Edibles(x, y, 10, 10, food.getValue()+ 1, graphics));
+                else
+                    quitGame();
+            }
+        });
+    }
+}

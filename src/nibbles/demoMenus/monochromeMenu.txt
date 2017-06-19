@@ -1,0 +1,12 @@
+
+
+|C|LIGHT_GRAY
+Do you have friends or are you lonely (1 or 2)?
+
+
+How awesome are you (1 to 100)?
+
+
+Super fast or nah (Y or N)?
+
+Got colors (M or C)? |I|

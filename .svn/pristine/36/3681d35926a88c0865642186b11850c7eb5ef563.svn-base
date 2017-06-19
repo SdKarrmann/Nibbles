@@ -1,0 +1,23 @@
+/*
+ * An interface for all objects that intend to be drawn to the screen.
+ */
+package nibbles;
+
+import java.awt.Color;
+
+/**
+ * 
+ * 
+ * @author Steven
+ */
+public interface IDrawable {
+    
+    /**
+     * This method replaces the god-awful 'Set' subroutine. Override
+     * this method to dictate how the GUI draws an object.
+     * 
+     * @param color The color to use when drawing.
+     */
+    public void Draw(Color color);
+    
+}

@@ -1,0 +1,48 @@
+package nibbles;
+
+import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.Stack;
+
+/**
+ *
+ * @author karrmanns
+ */
+public class LevelManager {
+    
+    private int foodValue, currentLevel;
+    public final int MAX_LEVELS = 11;
+    private Graphics graphics;
+    String[] files ;
+    Level level;
+    
+    public LevelManager(int level, Graphics gIn) {
+        files = new String[MAX_LEVELS];
+        for(int i = 0; i < MAX_LEVELS; i++)
+        {
+            files[i] = "Level" + i;
+        }
+        currentLevel = level % MAX_LEVELS;
+        graphics = gIn;
+    }
+    
+    public void setupLevel(ArrayList<Entity> addBuffer) {
+        foodValue = 0;
+        level = new Level(files[currentLevel], addBuffer, graphics);
+    }
+    
+    public int getLevel() {
+        return currentLevel;
+    }
+    
+    public Pair getRandomFoodLocation()
+    {
+        return level.getRandomFoodSpawn();
+    }
+    
+    public Pair getSpawnLocation(int key)
+    {
+        return level.getSpawnLocation(key);
+    }
+    
+}

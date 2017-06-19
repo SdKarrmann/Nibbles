@@ -1,0 +1,151 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+/**
+ * A container class for the necessary components of a snake. This includes the
+ * {@link SnakeHead} and all of the {@link SnakePart}s.
+ * 
+ * @author Steven
+ */
+public class Snake extends Entity {
+    
+    private LinkedList<SnakePart> snake = new LinkedList<SnakePart>();
+    private SnakeHead head;
+    private final int key;
+    private int shouldGrow = 0;
+    private int lives = 5;
+    private int points = 0;
+    
+    public Snake(int headRow, int headCol, Graphics g, int keyIn, SnakePart...parts) {
+        super(headRow, headCol, g);
+        head = new SnakeHead(g, headRow, headCol);
+        for(SnakePart part : parts)
+            snake.add(part);
+        key = keyIn;
+    }
+    
+    public Snake(Snake s)
+    {
+        super(s.x, s.y, s.g);
+        key = s.key;
+        points = s.points;
+        
+    }
+    
+    /**
+     * Moves the {@link Snake} in the stored {@link EnumDirection} and draws it.
+     * 
+     * @param color The color to use when drawing the {@link SnakePart}s.
+     */
+    @Override
+    public void draw() {
+        if(!snake.isEmpty()) {
+            snake.addFirst(new SnakePart(head.getGraphics(), head.getX(), head.getY()));
+            if(!(shouldGrow > 0)) {
+                snake.removeLast();
+            } else {
+                shouldGrow --;
+            }
+        }
+        EnumDirection direct = head.getDirection();
+        head.setY(head.getY() + direct.VERTICAL * SnakePart.WIDTH);
+        head.setX(head.getX() + direct.HORIZONTAL * SnakePart.WIDTH);
+        head.draw();
+        Iterator<SnakePart> iter = snake.iterator();
+        while(iter.hasNext())
+            iter.next().draw();
+    }
+    
+    /**
+     * Sets the direction that the {@link Snake}'s head is moving.
+     * 
+     * @param direct The {@link EnumDirection} that the {@link Snake}'s head is moving.
+     */
+    public void SetDirection(EnumDirection direct) 
+    {
+        if(!direct.isOpposite(head.getDirection()))
+            head.setDirect(direct);
+    }
+    
+    public EnumDirection getDirection() {
+        return head.getDirection();
+    }
+    
+    public int getLives()
+    {
+        return lives;
+    }
+    
+    public void setLives(int num)
+    {
+        lives = num;
+    }
+    
+    public boolean decrementLives()
+    {
+        if(--lives <= 0)
+        {
+            lives = 0;
+            return false;
+        }
+        return true;
+    }
+    
+    public int getKey() {
+        return key;
+    }
+
+    public int getPoints() {
+        return points;
+    }
+    
+    public void setPoints(int p)
+    {
+        points = p;
+    }
+
+    public void growSnake(int value) 
+    {
+        this.points += (value * 100);
+        this.shouldGrow += value;
+    }
+    
+    @Override
+    public boolean equals(Object obj)
+    {
+       if(obj instanceof Snake)
+       {
+          Snake rhs = (Snake)obj;
+          return this.getKey() == rhs.getKey();
+       }
+       return false;
+    }
+
+    @Override
+    public boolean areCollided(ICollidable collidable) {
+        if(collidable.areCollided(this.head))
+            return true;
+        else {
+            for(SnakePart part : this.snake)
+                if(part.areCollided(collidable))
+                    return true;
+        }
+        return false;
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return head.getBoundingBox();   //Force collisions checks to default
+                                        //to this class's areCollided method.
+    }
+    
+}

@@ -1,0 +1,38 @@
+package nibbles;
+
+import java.awt.Graphics;
+
+/**
+ * A special {@link SnakePart} that stores the direction of the {}
+ * 
+ * @author Steven
+ */
+public class SnakeHead extends SnakePart {
+    
+    private EnumDirection direction;
+    
+    public SnakeHead(Graphics graphicsIn, int xIn, int yIn) {
+        super(graphicsIn, xIn, yIn);
+        direction = EnumDirection.DOWN;
+    }
+    
+    public SnakeHead(SnakeHead sh)
+    {
+        super(sh);
+        if(sh != null)
+        {
+            direction = sh.direction;
+        }
+    }
+    
+    public void setDirect(EnumDirection direct) 
+    {
+        if(direct != null)
+            direction = direct;
+    }
+    
+    public EnumDirection getDirection() {
+        return direction;
+    }
+    
+}

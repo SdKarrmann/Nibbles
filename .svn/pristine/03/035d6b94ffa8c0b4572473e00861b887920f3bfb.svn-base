@@ -1,0 +1,10 @@
+I-Logix-RPY-Archive version 8.7.1 * 5066837
+
+- filesTable = { IRPYRawContainer 
+	- size = 3;
+	- value = "d9_Final_ClassDiagram.rpy" ""
+	"d9_Final_ClassDiagram_rpy\\Default.sbs" "Default"
+	"d9_Final_ClassDiagram_rpy\\DefaultComponent.cmp" "DefaultComponent"
+	
+}
+

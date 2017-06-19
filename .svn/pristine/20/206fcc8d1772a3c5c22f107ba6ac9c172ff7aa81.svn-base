@@ -1,0 +1,157 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.function.Consumer;
+import nibbles.CollisionLookup.ICollisionRun;
+
+/**
+ *
+ * @author Steven
+ */
+public class Nibbles {
+    
+    private ArrayList<IDrawable> drawables = new ArrayList<>();
+    private ArrayList<ICollidable> collidables = new ArrayList<>();
+    private ArrayList<Snake> snakes = new ArrayList<>();
+    private CollisionLookup collisions = new CollisionLookup();
+    Graphics graphics;
+    
+    private int windowWidth, windowHeight;
+    private int lvl;
+    private boolean paused, inMenu;
+    
+    public Nibbles(Graphics gIn, int...keys) {
+        graphics = gIn;
+        for(int key : keys)
+            this.spawnNewSnake(key, gIn);
+        paused = false;
+        inMenu = false;
+        windowWidth = windowHeight = 500;//TODO: make this parameterized.
+        collidables.add(new Wall(0, 0, windowWidth, windowHeight));
+        initCollisions();
+    }
+    
+    public void tick() {
+       if(Math.random() > 0.7)
+       {
+          snakes.get(0).growSnake();
+          System.out.println("Growth! Must be eating his vegetables");
+       }
+       // ^^^ REMOVE AFTER LOGIC IS IMPLEMENTED
+       
+       graphics.clearRect(0, 0, windowWidth, windowHeight);
+        Iterator<IDrawable> iterDraw = drawables.iterator();
+        while(iterDraw.hasNext())
+            iterDraw.next().Draw(Color.red);
+        Iterator<ICollidable> iterCollide = collidables.iterator();
+        iterCollide.forEachRemaining(new Consumer<ICollidable>() {
+            public void accept(ICollidable c) {
+                collisionCheck(iterCollide.next(), iterCollide);
+            }
+        });
+    }
+    
+    private void collisionCheck(ICollidable collide, Iterator<ICollidable> iterIn) {
+        Iterator<ICollidable> iter = iterIn;
+        iter.forEachRemaining(new Consumer<ICollidable>() {
+            public void accept(ICollidable c) {
+                if(collide.areCollided(c))
+                   collisions.runCollision(collide, c);
+            }
+        });
+    }
+    
+    public void setSnakeDirection(EnumDirection direct, int key) {
+        Snake snakeToChange = this.getSnake(key);
+        if(snakeToChange != null)
+            snakeToChange.SetDirection(direct);
+    }
+    
+    private Snake getSnake(int key) {
+        for(Snake current : this.snakes)
+            if(key == current.getKey())
+                return current;
+        return null;
+    }
+    
+    private int getKey(Snake snake) {
+        for(Snake current : this.snakes)
+            if(snake == current)
+                return current.getKey();
+        return -1;
+    }
+    
+    public boolean isPaused()
+    {
+        return paused;
+    }
+    
+    public boolean inMainMenu()
+    {
+        return inMenu;
+    }
+    
+    public boolean isSnakeAlive(int playerNum)
+    {
+        return true;
+    }
+    
+    public void setPaused(boolean val)
+    {
+        paused = val;
+    }
+    
+    public void quitGame()
+    {
+        inMenu = true;
+    }
+    
+    public void spawnNewSnake(int key, Graphics graphics)
+    {
+        int x = (int)(Math.random() % windowWidth);
+        int y = (int)(Math.random() % windowHeight);
+        Snake snakeToAdd = new Snake(x, y, graphics, key, new SnakePart(graphics, x, y));
+        this.snakes.add(snakeToAdd);
+        this.drawables.add(snakeToAdd);
+        this.collidables.add(snakeToAdd);
+    }
+    
+    public void killSnake(int key)
+    {
+        Snake snakeToRemove = this.getSnake(key);
+        if(snakeToRemove != null) {
+            this.snakes.remove(snakeToRemove);
+            this.drawables.remove(snakeToRemove);
+        }
+    }   
+    
+    public int getLevel() {
+        return lvl;
+    }
+    
+    public void incLevel() {
+        lvl ++;
+    }
+    
+    private void initCollisions() {
+        collisions.register(Snake.class, Snake.class, new ICollisionRun<Snake, Snake>() {
+            public void run(Snake collideFirst, Snake collideSecond) {
+                killSnake(getKey(collideFirst));
+                killSnake(getKey(collideSecond));
+            }
+        });
+        collisions.register(Snake.class, Wall.class, new ICollisionRun<Snake, Wall>() {
+            public void run(Snake collideFirst, Wall collideSecond) {
+                killSnake(getKey(collideFirst));
+            }
+        });
+    }
+}

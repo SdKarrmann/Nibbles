@@ -1,0 +1,43 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nibbles;
+
+import java.awt.Color;
+import java.awt.Graphics;
+
+/**
+ *
+ * @author Steven
+ */
+public class Wall extends Entity {
+    
+    private BoundingBox wallBox;
+    int width, height;
+    
+    public Wall(int x, int y, int width, int height, Graphics gIn) {
+        super(x, y, gIn);     
+        this.width = width;        
+        this.height = height;        
+        wallBox = new BoundingBox(x + 5, y + 5, width - 5, height - 5);
+    }
+
+    @Override
+    public boolean areCollided(ICollidable collidable) {
+        return collidable.getBoundingBox().isCollided(wallBox);
+    }
+
+    @Override
+    public BoundingBox getBoundingBox() {
+        return wallBox;
+    }
+
+    @Override
+    public void draw() {
+        g.setColor(Color.RED);
+        g.fillRect(x, y, width, height);
+    }
+    
+}
