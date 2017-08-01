@@ -5,8 +5,9 @@
  */
 package nibbles;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -19,23 +20,26 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  */
 public class SoundManager {
     
-    public static final String START_TUNE = "Resources\\LevelStartTune.wav";
-    public static final String INTRO_TUNE = "Resources\\IntroTune.wav";
-    public static final String EAT_TUNE = "Resources\\EatEdible.wav";
-    public static final String COLLISION_TUNE = "Resources\\Collision.wav";
+    public static final String START_TUNE = "Resources/LevelStartTune.wav";
+    public static final String INTRO_TUNE = "Resources/IntroTune.wav";
+    public static final String EAT_TUNE = "Resources/EatEdible.wav";
+    public static final String COLLISION_TUNE = "Resources/Collision.wav";
     
     public void playSound(String fileName) {
         try 
         {
             Clip clip = AudioSystem.getClip();
-            URL url = this.getClass().getResource(fileName);
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+            /*URL url = this.getClass().getResource(fileName);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);*/
+            InputStream iStream = getClass().getResourceAsStream(fileName);
+            InputStream bufferedIn = new BufferedInputStream(iStream);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(bufferedIn);
             clip.open(audioIn);
             clip.start(); 
         }
-        catch(IOException | LineUnavailableException | UnsupportedAudioFileException e)
+        catch(NullPointerException | IOException | LineUnavailableException | UnsupportedAudioFileException e)
         {
-            System.out.println("Error playing sound clip: " + fileName);
+            System.out.println("Error playing sound clip: " + fileName + ": " + e.getLocalizedMessage());
         }
     }
     

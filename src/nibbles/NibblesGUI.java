@@ -6,7 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -32,13 +34,14 @@ public class NibblesGUI extends javax.swing.JFrame implements KeyListener, Actio
         this.setUndecorated(true);
         initComponents();
         try {
-            File fontFile = new File("src\\nibbles\\Resources\\Px437_VGA_SquarePx.ttf");
-            Font font = Font.createFont(Font.TRUETYPE_FONT, fontFile);
+            /*File fontFile = new File("Resources/Px437_VGA_SquarePx.ttf");*/
+            InputStream bufferedInputStream = new BufferedInputStream(getClass().getResourceAsStream("Resources/Px437_VGA_SquarePx.ttf"));
+            Font font = Font.createFont(Font.TRUETYPE_FONT, bufferedInputStream);
             GraphicsEnvironment ge
                     = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(font);
         } catch (Exception e) {
-            System.out.println("Font registration failed");
+            System.out.println("Font registration failed: " + e.getLocalizedMessage());
         }
         this.setFont(new Font("Px437 VGA SquarePx", Font.PLAIN, fontSize));
         this.setSize(windowWidth, windowHeight);

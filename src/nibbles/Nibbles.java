@@ -90,7 +90,7 @@ public final class Nibbles {
     
     private String menuInput = " ";
     
-    public Nibbles(BufferStrategy/*Graphics*/ gIn, int width, int height, int numP) {
+    public Nibbles(BufferStrategy gIn, int width, int height, int numP) {
         bufferDouble = gIn;
         graphics = (Graphics2D)gIn.getDrawGraphics();
         pauseBar = (Graphics2D)gIn.getDrawGraphics();
@@ -226,7 +226,7 @@ public final class Nibbles {
     public void drawMenu(State menu) {
         graphics.setColor(Color.BLACK);
         graphics.fillRect(0, 0, windowWidth, windowHeight);
-        InputStream s = this.getClass().getResourceAsStream("\\menus\\" + menu + ".txt");
+        InputStream s = this.getClass().getResourceAsStream("menus/" + menu + ".txt");
         BufferedReader r = new BufferedReader(new InputStreamReader(s));
         int row = 1;
         try {

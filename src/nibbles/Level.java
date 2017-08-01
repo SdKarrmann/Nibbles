@@ -1,8 +1,10 @@
 package nibbles;
 
 import java.awt.Graphics;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**
@@ -25,7 +27,8 @@ public class Level {
         BufferedReader reader;
         try 
         {
-            reader = new BufferedReader(new FileReader("src\\nibbles\\Resources\\" + fileName + ".txt"));
+            BufferedInputStream iStream = new BufferedInputStream(getClass().getResourceAsStream("Resources/" + fileName + ".txt"));
+            reader = new BufferedReader(new InputStreamReader(iStream));
             ArrayList<char[]> lines = new ArrayList<>();
             String temp = reader.readLine();
             while(temp != null) 
@@ -36,9 +39,9 @@ public class Level {
             for(int i = 0; i < lines.size(); i ++)
                 readArray(lines.get(i), i);
         } 
-        catch (Exception e) 
+        catch (IOException e) 
         {
-            e.printStackTrace();
+            System.out.println("Error loading level: " + fileName + "; " + e.getLocalizedMessage());
         }
     }
     
@@ -74,9 +77,6 @@ public class Level {
     {
         if(spawnLocations.isEmpty())
             return new Pair();
-        int maxIndex = spawnLocations.size() - 1; 
-        /*if(key > maxIndex)
-            key = maxIndex;*/
         if(key - 1 <= spawnLocations.size())
             return spawnLocations.get(key - 1);
         else
